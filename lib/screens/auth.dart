@@ -3,9 +3,7 @@ import 'dart:io';
 import 'package:chat_app/screens/widgets/user_image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
 final _firebase = FirebaseAuth.instance;
@@ -24,11 +22,12 @@ class _AuthScreenState extends State<AuthScreen> {
   var _enterdPassword = '';
   File? _selectedImage;
   var _isAuthenticating = false;
+  var _enteredUsername = '';
 
   Future<void> _submit() async {
     final isValid = _form.currentState!.validate();
 
-    if (!isValid || (!_isLogin)) {
+    if (!isValid) {
       return;
     }
 
@@ -67,7 +66,7 @@ class _AuthScreenState extends State<AuthScreen> {
             .collection('users')
             .doc(userCredentials.user!.uid)
             .set({
-          'username': _enterdEmail,
+          'username': _enteredUsername.isEmpty ? 'No Username' : _enteredUsername,
           'email': _enterdEmail,
           'image_url': imageUrl, // เก็บ path ของไฟล์ใน Firestore
         });
@@ -141,6 +140,23 @@ class _AuthScreenState extends State<AuthScreen> {
                               _enterdEmail = value!;
                             },
                           ),
+                          if (!_isLogin)
+                            TextFormField(
+                              decoration:
+                                  InputDecoration(labelText: 'Username'),
+                              enableSuggestions: false,
+                              validator: (value) {
+                                if (value == null ||
+                                    value.isEmpty ||
+                                    value.trim().length < 4) {
+                                  return 'Please enter at least 4 characters.';
+                                }
+                                return null;
+                              },
+                              onSaved: (value) {
+                                _enteredUsername = value!;
+                              },
+                            ),
                           TextFormField(
                             decoration:
                                 const InputDecoration(labelText: 'Password'),
