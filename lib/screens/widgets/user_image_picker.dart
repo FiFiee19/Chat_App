@@ -7,48 +7,59 @@ import 'package:path_provider/path_provider.dart';
 class UserImagePicker extends StatefulWidget {
   const UserImagePicker({super.key, required this.onPickImage});
 
-  final void Function(File pickdImage) onPickImage;
+  final void Function(File pickedImage) onPickImage;
 
   @override
   State<UserImagePicker> createState() => _UserImagePickerState();
 }
 
 class _UserImagePickerState extends State<UserImagePicker> {
-  File? _pickdImageFile;
+  File? _pickedImageFile;
 
+  // ฟังก์ชั่นในการเลือกภาพจากกล้อง
   void _pickImage() async {
-    final pickdImage = await ImagePicker().pickImage(
+    final pickedImage = await ImagePicker().pickImage(
       source: ImageSource.camera,
       imageQuality: 50,
       maxWidth: 150,
     );
-    if (pickdImage == null) {
+    if (pickedImage == null) {
       return;
     }
 
+    // เก็บไฟล์ที่เลือกใน local storage
+    final directory = await getApplicationDocumentsDirectory();
+    final fileName = DateTime.now().millisecondsSinceEpoch.toString();  // ใช้เวลาปัจจุบันเป็นชื่อไฟล์
+    final savedImage = await File(pickedImage.path).copy('${directory.path}/$fileName');
+
     setState(() {
-      _pickdImageFile = File(pickdImage.path);
+      _pickedImageFile = savedImage;
     });
 
-    widget.onPickImage(_pickdImageFile!);
+    // ส่งข้อมูลภาพที่เลือกกลับไป
+    widget.onPickImage(savedImage);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      CircleAvatar(
+    return Column(
+      children: [
+        CircleAvatar(
           radius: 40,
           backgroundColor: Colors.grey,
-          foregroundImage: _pickdImageFile != null
-              ? FileImage(_pickdImageFile!)
-              : AssetImage('assets/images/default.png') as ImageProvider,),
-      TextButton.icon(
-          onPressed: _pickImage,
+          foregroundImage: _pickedImageFile != null
+              ? FileImage(_pickedImageFile!) // หากผู้ใช้เลือกภาพ
+              : AssetImage('assets/images/default.png') as ImageProvider, // หากไม่เลือกให้ใช้ภาพ default
+        ),
+        TextButton.icon(
+          onPressed: _pickImage,  // เรียกฟังก์ชั่นเลือกภาพ
           icon: Icon(Icons.image),
           label: Text(
             'Add Image',
             style: TextStyle(color: Theme.of(context).primaryColor),
-          ))
-    ]);
+          ),
+        ),
+      ],
+    );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:chat_app/screens/widgets/user_image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -27,7 +28,7 @@ class _AuthScreenState extends State<AuthScreen> {
   Future<void> _submit() async {
     final isValid = _form.currentState!.validate();
 
-    if (!isValid || (!_isLogin && _selectedImage == null)) {
+    if (!isValid || (!_isLogin)) {
       return;
     }
 
@@ -43,35 +44,36 @@ class _AuthScreenState extends State<AuthScreen> {
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
             email: _enterdEmail, password: _enterdPassword);
 
-        // บันทึกรูปภาพหากผู้ใช้เลือก
-        File? imageFile;
+        String imageUrl = ''; // Default empty value for the image URL
+
         if (_selectedImage != null) {
+          // เก็บภาพใน local storage
           final directory = await getApplicationDocumentsDirectory();
           final String fileName =
               userCredentials.user!.uid; // ใช้ UID ของผู้ใช้
-          imageFile = await File(_selectedImage!.path)
-              .copy('${directory.path}/$fileName');
+          final savedImage = await File(_selectedImage!.path)
+              .copy('${directory.path}/$fileName.jpg');
+
+          // เก็บ URL ของภาพใน local storage
+          imageUrl = savedImage.path; // เก็บ path ของไฟล์ใน local storage
         } else {
-          // ใช้ default image path ที่เก็บไว้ใน assets
-          imageFile = File('assets/images/default.png');
+          // ถ้าไม่เลือกภาพ จะใช้ URL ภาพเริ่มต้น
+          imageUrl =
+              'assets/images/default.png'; // ใช้ URL ของรูปเริ่มต้นจาก assets
         }
 
-        // ลองพิมพ์ไฟล์ที่ถูกเก็บไว้เพื่อดูผลลัพธ์
-        print('Image saved at: ${imageFile.path}');
-
+        // Save the user data to Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredentials.user!.uid)
             .set({
-          'username': 'to be done ...',
+          'username': _enterdEmail,
           'email': _enterdEmail,
-          'image_url': imageFile
+          'image_url': imageUrl, // เก็บ path ของไฟล์ใน Firestore
         });
-      }
 
-      // แสดงข้อความหลังจากการสมัครสำเร็จ
-      // ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(content: Text('Account created successfully!')));
+        print('Image URL saved to Firestore: $imageUrl');
+      }
     } on FirebaseAuthException catch (error) {
       if (error.code == 'email-already-in-use') {
         // คุณสามารถแสดงข้อความที่เหมาะสมให้ผู้ใช้ทราบได้
@@ -84,9 +86,11 @@ class _AuthScreenState extends State<AuthScreen> {
             SnackBar(content: Text(error.message ?? 'Authentication failed.')));
       }
     } finally {
-      setState(() {
-        _isAuthenticating = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isAuthenticating = false;
+        });
+      }
     }
   }
 
