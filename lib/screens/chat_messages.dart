@@ -57,7 +57,7 @@ class ChatMessages extends StatelessWidget {
                       userImage: chatMessage['userImage'],
                       username: chatMessage['username'],
                       message: chatMessage['text'],
-                      isMe: authenticatedUser == currentMessageUserId);
+                      isMe: authenticatedUser.uid == currentMessageUserId);
                 }
               });
         });

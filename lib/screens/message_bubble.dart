@@ -22,7 +22,7 @@ class MessageBubble extends StatelessWidget {
   final bool isFirstInSequence;
   final String? userImage;
   final String? username;
-  final String? message;
+  final String message;
   final bool isMe;
 
   @override
@@ -85,7 +85,7 @@ class MessageBubble extends StatelessWidget {
                     padding: EdgeInsets.symmetric(vertical: 10, horizontal: 14),
                     margin: EdgeInsets.symmetric(vertical: 4, horizontal: 12),
                     child: Text(
-                      message!,
+                      message,
                       style: TextStyle(
                           height: 1.3,
                           color: isMe
