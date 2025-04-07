@@ -16,7 +16,6 @@ class UserImagePicker extends StatefulWidget {
 class _UserImagePickerState extends State<UserImagePicker> {
   File? _pickedImageFile;
 
-  // ฟังก์ชั่นในการเลือกภาพจากกล้อง
   void _pickImage() async {
     final pickedImage = await ImagePicker().pickImage(
       source: ImageSource.camera,
@@ -27,16 +26,15 @@ class _UserImagePickerState extends State<UserImagePicker> {
       return;
     }
 
-    // เก็บไฟล์ที่เลือกใน local storage
     final directory = await getApplicationDocumentsDirectory();
-    final fileName = DateTime.now().millisecondsSinceEpoch.toString();  // ใช้เวลาปัจจุบันเป็นชื่อไฟล์
-    final savedImage = await File(pickedImage.path).copy('${directory.path}/$fileName');
+    final fileName = DateTime.now().millisecondsSinceEpoch.toString();
+    final savedImage =
+        await File(pickedImage.path).copy('${directory.path}/$fileName');
 
     setState(() {
       _pickedImageFile = savedImage;
     });
 
-    // ส่งข้อมูลภาพที่เลือกกลับไป
     widget.onPickImage(savedImage);
   }
 
@@ -45,14 +43,12 @@ class _UserImagePickerState extends State<UserImagePicker> {
     return Column(
       children: [
         CircleAvatar(
-          radius: 40,
-          backgroundColor: Colors.grey,
-          foregroundImage: _pickedImageFile != null
-              ? FileImage(_pickedImageFile!) // หากผู้ใช้เลือกภาพ
-              : AssetImage('assets/images/default.png') as ImageProvider, // หากไม่เลือกให้ใช้ภาพ default
-        ),
+            radius: 40,
+            backgroundColor: Colors.grey,
+            foregroundImage:
+                _pickedImageFile != null ? FileImage(_pickedImageFile!) : null),
         TextButton.icon(
-          onPressed: _pickImage,  // เรียกฟังก์ชั่นเลือกภาพ
+          onPressed: _pickImage,
           icon: Icon(Icons.image),
           label: Text(
             'Add Image',

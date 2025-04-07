@@ -31,6 +31,13 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
 
+    if (!_isLogin && _selectedImage == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please select an image')),
+      );
+      return;
+    }
+
     _form.currentState!.save();
     try {
       setState(() {
@@ -43,39 +50,33 @@ class _AuthScreenState extends State<AuthScreen> {
         final userCredentials = await _firebase.createUserWithEmailAndPassword(
             email: _enterdEmail, password: _enterdPassword);
 
-        String imageUrl = ''; // Default empty value for the image URL
+        String imageUrl = '';
 
         if (_selectedImage != null) {
-          // เก็บภาพใน local storage
           final directory = await getApplicationDocumentsDirectory();
-          final String fileName =
-              userCredentials.user!.uid; // ใช้ UID ของผู้ใช้
+          final String fileName = userCredentials.user!.uid;
           final savedImage = await File(_selectedImage!.path)
               .copy('${directory.path}/$fileName.jpg');
 
-          // เก็บ URL ของภาพใน local storage
-          imageUrl = savedImage.path; // เก็บ path ของไฟล์ใน local storage
+          imageUrl = savedImage.path;
         } else {
-          // ถ้าไม่เลือกภาพ จะใช้ URL ภาพเริ่มต้น
-          imageUrl =
-              'assets/images/default.png'; // ใช้ URL ของรูปเริ่มต้นจาก assets
+          imageUrl = 'assets/images/default.png';
         }
 
-        // Save the user data to Firestore
         await FirebaseFirestore.instance
             .collection('users')
             .doc(userCredentials.user!.uid)
             .set({
-          'username': _enteredUsername.isEmpty ? 'No Username' : _enteredUsername,
+          'username':
+              _enteredUsername.isEmpty ? 'No Username' : _enteredUsername,
           'email': _enterdEmail,
-          'image_url': imageUrl, // เก็บ path ของไฟล์ใน Firestore
+          'image_url': imageUrl,
         });
 
         print('Image URL saved to Firestore: $imageUrl');
       }
     } on FirebaseAuthException catch (error) {
       if (error.code == 'email-already-in-use') {
-        // คุณสามารถแสดงข้อความที่เหมาะสมให้ผู้ใช้ทราบได้
         ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('This email is already in use.')));
@@ -96,114 +97,198 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                margin: EdgeInsets.only(bottom: 20, left: 20, right: 20),
-                width: 200,
-                child: Image.asset('assets/images/logo.png'),
-              ),
-              Card(
-                margin: EdgeInsets.all(20),
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Form(
-                      key: _form,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (!_isLogin)
-                            UserImagePicker(
-                              onPickImage: (pickedImage) {
-                                _selectedImage = pickedImage;
-                              },
+      backgroundColor: const Color.fromARGB(255, 228, 155, 179),
+      body: Container(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_isLogin)
+                  Container(
+                    child: Text(
+                      'Login',
+                      style: TextStyle(
+                          fontSize: 50,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                    ),
+                  ),
+                if (!_isLogin)
+                  Container(
+                    child: Text(
+                      'Signup',
+                      style: TextStyle(
+                          fontSize: 50,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                    ),
+                  ),
+                SizedBox(
+                  height: 20,
+                ),
+                Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30)),
+                  margin: EdgeInsets.all(30),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Form(
+                        key: _form,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (!_isLogin)
+                              UserImagePicker(
+                                onPickImage: (pickedImage) {
+                                  _selectedImage = pickedImage;
+                                },
+                              ),
+                            SizedBox(
+                              height: 20,
                             ),
-                          TextFormField(
-                            decoration: const InputDecoration(
-                                labelText: 'Email Address'),
-                            autocorrect: false,
-                            textCapitalization: TextCapitalization.none,
-                            validator: (value) {
-                              if (value == null ||
-                                  value.trim().isEmpty ||
-                                  !value.contains('@')) {
-                                return 'Please enter a valid email address.';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              _enterdEmail = value!;
-                            },
-                          ),
-                          if (!_isLogin)
                             TextFormField(
-                              decoration:
-                                  InputDecoration(labelText: 'Username'),
-                              enableSuggestions: false,
+                              decoration: const InputDecoration(
+                                fillColor: Color.fromARGB(255, 228, 228, 228),
+                                filled: true,
+                                labelText: 'Email Address',
+                                labelStyle:
+                                    TextStyle(fontSize: 14, color: Colors.grey),
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.transparent),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                ),
+                              ),
+                              autocorrect: false,
+                              textCapitalization: TextCapitalization.none,
                               validator: (value) {
                                 if (value == null ||
-                                    value.isEmpty ||
-                                    value.trim().length < 4) {
-                                  return 'Please enter at least 4 characters.';
+                                    value.trim().isEmpty ||
+                                    !value.contains('@')) {
+                                  return 'Please enter a valid email address.';
                                 }
                                 return null;
                               },
                               onSaved: (value) {
-                                _enteredUsername = value!;
+                                _enterdEmail = value!;
                               },
                             ),
-                          TextFormField(
-                            decoration:
-                                const InputDecoration(labelText: 'Password'),
-                            obscureText: true,
-                            validator: (value) {
-                              if (value == null || value.trim().length < 6) {
-                                return 'Password must be at least 6 characters long.';
-                              }
-                              return null;
-                            },
-                            onSaved: (value) {
-                              _enterdPassword = value!;
-                            },
-                          ),
-                          const SizedBox(
-                            height: 12,
-                          ),
-                          if (_isAuthenticating) CircularProgressIndicator(),
-                          if (!_isAuthenticating)
-                            ElevatedButton(
-                              onPressed: () {
-                                _submit();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor:
-                                      Theme.of(context).colorScheme.primary),
-                              child: Text(
-                                _isLogin ? 'Login' : 'Signup',
-                                style: TextStyle(color: Colors.white),
+                            SizedBox(
+                              height: 15,
+                            ),
+                            if (!_isLogin)
+                              TextFormField(
+                                decoration: const InputDecoration(
+                                  fillColor: Color.fromARGB(255, 228, 228, 228),
+                                  filled: true,
+                                  labelText: 'Username',
+                                  labelStyle: TextStyle(
+                                      fontSize: 14, color: Colors.grey),
+                                  border: OutlineInputBorder(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(30)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.transparent),
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(30)),
+                                  ),
+                                ),
+                                enableSuggestions: false,
+                                validator: (value) {
+                                  if (value == null ||
+                                      value.isEmpty ||
+                                      value.trim().length < 4) {
+                                    return 'Please enter at least 4 characters.';
+                                  }
+                                  return null;
+                                },
+                                onSaved: (value) {
+                                  _enteredUsername = value!;
+                                },
                               ),
+                            SizedBox(
+                              height: 12,
                             ),
-                          TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isLogin = !_isLogin;
-                                });
+                            TextFormField(
+                              decoration: const InputDecoration(
+                                fillColor: Color.fromARGB(255, 228, 228, 228),
+                                filled: true,
+                                labelText: 'Password',
+                                labelStyle:
+                                    TextStyle(fontSize: 14, color: Colors.grey),
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.transparent),
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(30)),
+                                ),
+                              ),
+                              obscureText: true,
+                              validator: (value) {
+                                if (value == null || value.trim().length < 6) {
+                                  return 'Password must be at least 6 characters long.';
+                                }
+                                return null;
                               },
-                              child: Text(_isLogin
-                                  ? 'Create an account'
-                                  : 'I already have an account'))
-                        ],
+                              onSaved: (value) {
+                                _enterdPassword = value!;
+                              },
+                            ),
+                            const SizedBox(
+                              height: 25,
+                            ),
+                            if (_isAuthenticating) CircularProgressIndicator(),
+                            if (!_isAuthenticating)
+                              ElevatedButton(
+                                onPressed: () {
+                                  _submit();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Color.fromARGB(255, 228, 155, 179),
+                                    minimumSize: Size(double.infinity, 50)),
+                                child: Text(
+                                  _isLogin ? 'Login' : 'Signup',
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                ),
+                              ),
+                            TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _isLogin = !_isLogin;
+                                  });
+                                },
+                                child: Text(
+                                  _isLogin
+                                      ? 'Create an account'
+                                      : 'I already have an account',
+                                  style: TextStyle(
+                                      color: const Color.fromARGB(
+                                          255, 142, 114, 158),
+                                      fontWeight: FontWeight.w600),
+                                ))
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
