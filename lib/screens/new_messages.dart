@@ -29,30 +29,24 @@ class _NewMessageState extends State<NewMessage> {
 
     final user = FirebaseAuth.instance.currentUser;
 
-   
     final userData = await FirebaseFirestore.instance
         .collection('users')
         .doc(user!.uid)
         .get();
 
-    
     if (userData.exists) {
       final userMap = userData.data();
-      final username = userMap?['username'] ??
-          'Unknown User'; 
-      final userImage =
-          userMap?['image_url'] ?? ''; 
+      final username = userMap?['username'] ?? 'Unknown User';
+      final userImage = userMap?['image_url'] ?? '';
 
-      // ส่งข้อมูลไปยัง collection 'chat'
       FirebaseFirestore.instance.collection('chat').add({
         'text': enterdMessage,
         'createdAt': Timestamp.now(),
         'userId': user.uid,
-        'username': username, 
-        'userImage': userImage 
+        'username': username,
+        'userImage': userImage
       });
     } else {
-     
       print('User data not found!');
     }
   }
@@ -84,8 +78,15 @@ class _NewMessageState extends State<NewMessage> {
               ),
             ),
           )),
-          IconButton(onPressed: _submitMessage, icon: Icon(Icons.send),color: const Color.fromARGB(
-                                          255, 142, 114, 158,))
+          IconButton(
+              onPressed: _submitMessage,
+              icon: Icon(Icons.send),
+              color: const Color.fromARGB(
+                255,
+                142,
+                114,
+                158,
+              ))
         ],
       ),
     );
