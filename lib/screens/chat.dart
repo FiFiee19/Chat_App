@@ -12,18 +12,16 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-
-  void setupPushNotifications() async{
+  void setupPushNotifications() async {
     final fcm = FirebaseMessaging.instance;
     await fcm.requestPermission();
     fcm.subscribeToTopic('chat');
-
   }
 
   @override
   void initState() {
-    super .initState();
-    
+    super.initState();
+
     setupPushNotifications();
   }
 
@@ -31,17 +29,32 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('FlutterChat'),
+          title: Text(
+            'ChitChat',
+            style: TextStyle(
+                fontWeight: FontWeight.w600, fontSize: 25, color: Colors.white),
+          ),
           actions: [
             IconButton(
-                onPressed: () {
-                  FirebaseAuth.instance.signOut();
-                },
-                icon: Icon(
-                  Icons.exit_to_app,
-                  color: Theme.of(context).colorScheme.primary,
-                ))
+              onPressed: () {
+                FirebaseAuth.instance.signOut();
+              },
+              icon: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color.fromARGB(255, 142, 114, 158),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Icon(
+                    Icons.exit_to_app,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            )
           ],
+          backgroundColor: Color.fromARGB(255, 228, 155, 179),
         ),
         body: Column(
           children: [Expanded(child: ChatMessages()), NewMessage()],

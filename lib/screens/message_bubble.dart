@@ -63,22 +63,23 @@ class MessageBubble extends StatelessWidget {
                         username!,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: const Color.fromARGB(
+                                          255, 142, 114, 158),
                         ),
                       ),
                     ),
                   Container(
                     decoration: BoxDecoration(
                         color: isMe
-                            ? Colors.grey[300]
-                            : theme.colorScheme.secondary.withAlpha(200),
+                            ? const Color.fromARGB(255, 233, 233, 233)
+                            : Color.fromARGB(255, 228, 155, 179),
                         borderRadius: BorderRadius.only(
                             topLeft: !isMe && isFirstInSequence
                                 ? Radius.zero
                                 : const Radius.circular(12),
                             topRight: !isMe && isFirstInSequence
-                                ? Radius.zero
-                                : const Radius.circular(12),
+                                ? const Radius.circular(12)
+                                : Radius.zero,
                             bottomLeft: const Radius.circular(12),
                             bottomRight: const Radius.circular(12))),
                     constraints: BoxConstraints(maxWidth: 200),

@@ -29,30 +29,30 @@ class _NewMessageState extends State<NewMessage> {
 
     final user = FirebaseAuth.instance.currentUser;
 
-    // ตรวจสอบว่าผู้ใช้มีข้อมูลใน Firestore หรือไม่
+   
     final userData = await FirebaseFirestore.instance
         .collection('users')
         .doc(user!.uid)
         .get();
 
-    // ตรวจสอบว่า data() ไม่เป็น null และให้ค่าผลลัพธ์ที่เหมาะสม
+    
     if (userData.exists) {
       final userMap = userData.data();
       final username = userMap?['username'] ??
-          'Unknown User'; // ใช้ค่า default หากไม่พบ 'username'
+          'Unknown User'; 
       final userImage =
-          userMap?['image_url'] ?? ''; // ใช้ค่า default หากไม่พบ 'image_url'
+          userMap?['image_url'] ?? ''; 
 
       // ส่งข้อมูลไปยัง collection 'chat'
       FirebaseFirestore.instance.collection('chat').add({
         'text': enterdMessage,
         'createdAt': Timestamp.now(),
         'userId': user.uid,
-        'username': username, // ใช้ username จาก Firestore
-        'userImage': userImage // ใช้ image_url จาก Firestore
+        'username': username, 
+        'userImage': userImage 
       });
     } else {
-      // หากไม่พบข้อมูลใน Firestore
+     
       print('User data not found!');
     }
   }
@@ -69,9 +69,23 @@ class _NewMessageState extends State<NewMessage> {
             textCapitalization: TextCapitalization.sentences,
             autocorrect: true,
             enableSuggestions: true,
-            decoration: InputDecoration(labelText: 'Send a message...'),
+            decoration: const InputDecoration(
+              fillColor: Color.fromARGB(255, 228, 228, 228),
+              filled: true,
+              labelText: 'Send a message...',
+              labelStyle: TextStyle(
+                  fontSize: 14, color: Color.fromARGB(255, 126, 126, 126)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.all(Radius.circular(30)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: Colors.transparent),
+                borderRadius: BorderRadius.all(Radius.circular(30)),
+              ),
+            ),
           )),
-          IconButton(onPressed: _submitMessage, icon: Icon(Icons.send))
+          IconButton(onPressed: _submitMessage, icon: Icon(Icons.send),color: const Color.fromARGB(
+                                          255, 142, 114, 158,))
         ],
       ),
     );
